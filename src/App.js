@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from "react-router";
+import Chart from "./page/Chart";
 import Streamer from "./page/Streamer";
 import Viewer from "./page/Viewer";
 
@@ -7,6 +8,7 @@ const App = () => {
     <Routes>
       <Route path="/" element={<Streamer />} />
       <Route path="viewer" element={<Viewer />} />
+      <Route path="chart" element={<Chart />} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
