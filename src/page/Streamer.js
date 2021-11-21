@@ -1,17 +1,13 @@
 import { useEffect, useState } from "react";
 import PeerState from "../peer/peer-state";
 import usePeer from "../peer/usePeer";
+import { updateSnapshot } from "../protocol/protocol";
+import createVotingState from "../protocol/voting-state";
 
 const Streamer = () => {
-  const [items, setItems] = useState([]);
-  const dataObserver = (data) => {
-    setItems((items) => [...items, data]);
-  };
-
-  const { myPeerId, state, send } = usePeer(dataObserver);
+  const { myPeerId, state, send } = usePeer();
   const [viewerLink, setViewerLink] = useState(null);
-  const [message, setMessage] = useState("");
-  
+
   useEffect(() => {
     if (!myPeerId) return;
 
@@ -19,6 +15,21 @@ const Streamer = () => {
     url.search = new URLSearchParams({ connect_to: myPeerId });
     setViewerLink(url.href);
   }, [myPeerId]);
+
+  const sendRandomVotingEvent = () => {
+    const randomLength = Math.floor(Math.random() * 5) + 1;
+    const randomData = [...Array(randomLength).keys()].map((i) => {
+      return {
+        name: `Key-${i}`,
+        value: Math.floor(Math.random() * 100) + 1
+      };
+    });
+
+    const votingState = createVotingState(Math.random() < 0.5, randomData);
+    const protocol = updateSnapshot({ votingState });
+
+    send(protocol);
+  };
 
   return (
     <>
@@ -32,19 +43,11 @@ const Streamer = () => {
         Copy link
       </button>
       <br />
-      <input type="text" id="message" name="message" value={message} onChange={(ev) => setMessage(ev.target.value)}></input>
       <button
         disabled={state === PeerState.Idle}
-        onClick={() => {
-          send(message);
-          setMessage("");
-        }}>
-        Send message
+        onClick={sendRandomVotingEvent}>
+        Send random voting event
       </button>
-      {items.length > 0 && <p>Item: </p>}
-      <ul>
-        {items.map((item) => <li>{item}</li>)}
-      </ul>
     </>
   );
 };
