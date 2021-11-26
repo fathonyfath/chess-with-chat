@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import useWebsocket from "../websocket/useWebsocket";
 import { getGuardUrl } from "./goplay-api";
+import GoPlayChatState from "./goplay-chat-state";
 
 const useGoPlayChat = () => {
   const [chatAuth, setChatAuth] = useState(null);
   const [lastChatMessage, setLastChatMessage] = useState(null);
+  const [chatState, setChatState] = useState(GoPlayChatState.Idle);
 
   const onOpenGuardHandler = () => {
     guardWsSend(JSON.stringify({
@@ -39,6 +41,8 @@ const useGoPlayChat = () => {
       room_id: chatAuth.roomId,
       token: chatAuth.token
     }));
+
+    setChatState(GoPlayChatState.Connected);
   };
 
   const onCloseChatHandler = () => {
@@ -76,7 +80,7 @@ const useGoPlayChat = () => {
     connectInternal(eventSlug);
   }
 
-  return { lastChatMessage, connect };
+  return { lastChatMessage, chatState, connect };
 };
 
 export default useGoPlayChat;

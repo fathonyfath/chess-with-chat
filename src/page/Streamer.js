@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import GoPlayChatState from "../api/goplay-chat-state";
 import useGoPlayChat from "../api/useGoPlayChat";
 import ChessPlayer from "../component/ChessPlayer";
 import PeerState from "../peer/peer-state";
@@ -14,9 +15,9 @@ const Streamer = () => {
   const { myPeerId, state, send } = usePeer();
   const [viewerLink, setViewerLink] = useState(null);
 
-  const { lastChatMessage, connect } = useGoPlayChat();
+  const { lastChatMessage, chatState, connect } = useGoPlayChat();
 
-  const [acceptingChat, setAcceptingChat] = useState(false);
+  const [acceptingChat, setAcceptingChat] = useState(true);
 
   const [fen, setFen] = useState(null);
   const [gameHistory, setGameHistory] = useState({});
@@ -24,9 +25,11 @@ const Streamer = () => {
   const getEnemyMovesRef = useRef();
   const moveEnemyRef = useRef();
 
+  const chatIsConnected = () => chatState === GoPlayChatState.Connected
+
   useEffect(() => {
     if (acceptingChat && lastChatMessage) {
-      
+
     }
   }, [lastChatMessage, acceptingChat]);
 
@@ -64,47 +67,26 @@ const Streamer = () => {
     setViewerLink(url.href);
   }, [myPeerId]);
 
-  const sendRandomVotingEvent = () => {
-    const randomLength = Math.floor(Math.random() * 5) + 1;
-    const randomData = [...Array(randomLength).keys()].map((i) => {
-      return {
-        name: `Key-${i}`,
-        value: Math.floor(Math.random() * 100) + 1
-      };
-    });
-
-    const votingState = createVotingState(Math.random() < 0.5, randomData);
-    const protocol = updateVotingState(votingState);
-    send(protocol);
-  };
-
   return (
     <>
       <h1>Streamer</h1>
       <h2>State: {state}</h2>
       <p>MyPeerId: {myPeerId}</p>
+      <p>ChatState: {chatState}</p>
       <input type="text" id="event-slug" name="event-slug" ref={eventSlugRef}></input>
       <button
+        disabled={chatIsConnected()}
         onClick={() => connect(eventSlugRef.current.value)}>
         Update Event Slug
       </button>
-      <button
-        onClick={() => setAcceptingChat((old) => !old)}>
-        {acceptingChat && "Accepting Chat"}
-        {!acceptingChat && "Not Accepting Chat"}
-      </button>
+      <br />
       <input type="text" id="link" name="link" value={viewerLink || ""} readOnly></input>
       <button
-        disabled={!viewerLink}
+        disabled={!viewerLink || !chatIsConnected()}
         onClick={() => navigator.clipboard.writeText(viewerLink)}>
         Copy link
       </button>
       <br />
-      <button
-        disabled={state === PeerState.Idle}
-        onClick={sendRandomVotingEvent}>
-        Send random voting event
-      </button>
       <ChessPlayer
         getEnemyMovesRef={getEnemyMovesRef}
         moveEnemyRef={moveEnemyRef}
