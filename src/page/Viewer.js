@@ -20,7 +20,7 @@ const Viewer = () => {
 
   const [countdown, setCountdown] = useState(0);
   const [possibleMove, setPossibleMove] = useState([]);
-  const [gameStatus, setGameStatus] = useState("Null");
+  const [gameStatus, setGameStatus] = useState("");
 
   const dataObserver = useCallback((data) => {
     switch (data.type) {

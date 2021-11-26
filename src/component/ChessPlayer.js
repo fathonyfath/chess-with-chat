@@ -133,6 +133,8 @@ const ChessPlayer = ({
     setGameHistory(game.history({ verbose: true }));
   };
 
+  useEffect(() => updateStatus(), []);
+
   const highlightSquareMoves = (squaresToHighlight) => {
     if (game.promotionInProgress) return;
 

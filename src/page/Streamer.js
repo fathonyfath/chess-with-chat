@@ -6,6 +6,7 @@ import usePeer from "../peer/usePeer";
 import RaceChart from "../component/RaceChart";
 import { updateCountdown, updateFEN, updateHistory, updatePossibleEnemyMoves, updateStatus, updateVotingState } from "../protocol/protocol";
 import createVotingState from "../protocol/voting-state";
+import { stringToColor } from "../util/util";
 
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -36,7 +37,7 @@ const Streamer = () => {
     visible: false,
     data: []
   });
-  const [gameStatus, setGameStatus] = useState("Null");
+  const [gameStatus, setGameStatus] = useState("");
 
   const [viewerPossibleMove, setViewerPossibleMove] = useState([]);
 
