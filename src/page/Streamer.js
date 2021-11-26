@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import useGoPlayChat from "../api/useGoPlayChat";
 import ChessPlayer from "../component/ChessPlayer";
 import PeerState from "../peer/peer-state";
 import usePeer from "../peer/usePeer";
@@ -8,14 +9,26 @@ import createVotingState from "../protocol/voting-state";
 const delay = (ms) => new Promise(r => setTimeout(r, ms));
 
 const Streamer = () => {
+  const eventSlugRef = useRef();
+
   const { myPeerId, state, send } = usePeer();
   const [viewerLink, setViewerLink] = useState(null);
+
+  const { lastChatMessage, connect } = useGoPlayChat();
+
+  const [acceptingChat, setAcceptingChat] = useState(false);
 
   const [fen, setFen] = useState(null);
   const [gameHistory, setGameHistory] = useState({});
 
   const getEnemyMovesRef = useRef();
   const moveEnemyRef = useRef();
+
+  useEffect(() => {
+    if (acceptingChat && lastChatMessage) {
+      
+    }
+  }, [lastChatMessage, acceptingChat]);
 
   const onCurrentChanged = (turn) => {
     if (turn === "b") {
@@ -38,7 +51,7 @@ const Streamer = () => {
 
   const onFenChanged = (fen) => {
     setFen(fen);
-    
+
     const protocol = updateFEN(fen);
     send(protocol);
   };
@@ -70,6 +83,16 @@ const Streamer = () => {
       <h1>Streamer</h1>
       <h2>State: {state}</h2>
       <p>MyPeerId: {myPeerId}</p>
+      <input type="text" id="event-slug" name="event-slug" ref={eventSlugRef}></input>
+      <button
+        onClick={() => connect(eventSlugRef.current.value)}>
+        Update Event Slug
+      </button>
+      <button
+        onClick={() => setAcceptingChat((old) => !old)}>
+        {acceptingChat && "Accepting Chat"}
+        {!acceptingChat && "Not Accepting Chat"}
+      </button>
       <input type="text" id="link" name="link" value={viewerLink || ""} readOnly></input>
       <button
         disabled={!viewerLink}
