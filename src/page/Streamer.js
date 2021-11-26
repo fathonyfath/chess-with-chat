@@ -1,12 +1,47 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import ChessPlayer from "../component/ChessPlayer";
 import PeerState from "../peer/peer-state";
 import usePeer from "../peer/usePeer";
-import { updateSnapshot } from "../protocol/protocol";
+import { updateFEN, updateHistory, updateVotingState } from "../protocol/protocol";
 import createVotingState from "../protocol/voting-state";
+
+const delay = (ms) => new Promise(r => setTimeout(r, ms));
 
 const Streamer = () => {
   const { myPeerId, state, send } = usePeer();
   const [viewerLink, setViewerLink] = useState(null);
+
+  const [fen, setFen] = useState(null);
+  const [gameHistory, setGameHistory] = useState({});
+
+  const getEnemyMovesRef = useRef();
+  const moveEnemyRef = useRef();
+
+  const onCurrentChanged = (turn) => {
+    if (turn === "b") {
+      const { allMoves } = getEnemyMovesRef.current();
+      const randomMove = allMoves[Math.floor(Math.random() * allMoves.length)];
+      const processMove = async () => {
+        await delay(1000);
+        moveEnemyRef.current(randomMove);
+      };
+      processMove();
+    }
+  };
+
+  const onGameHistoryChanged = (history) => {
+    setGameHistory(history);
+
+    const protocol = updateHistory(history);
+    send(protocol);
+  };
+
+  const onFenChanged = (fen) => {
+    setFen(fen);
+    
+    const protocol = updateFEN(fen);
+    send(protocol);
+  };
 
   useEffect(() => {
     if (!myPeerId) return;
@@ -26,8 +61,7 @@ const Streamer = () => {
     });
 
     const votingState = createVotingState(Math.random() < 0.5, randomData);
-    const protocol = updateSnapshot({ votingState });
-
+    const protocol = updateVotingState(votingState);
     send(protocol);
   };
 
@@ -48,6 +82,12 @@ const Streamer = () => {
         onClick={sendRandomVotingEvent}>
         Send random voting event
       </button>
+      <ChessPlayer
+        getEnemyMovesRef={getEnemyMovesRef}
+        moveEnemyRef={moveEnemyRef}
+        onCurrentChanged={onCurrentChanged}
+        onGameHistoryChanged={onGameHistoryChanged}
+        onFenChanged={onFenChanged} />
     </>
   );
 };

@@ -4,13 +4,16 @@ const createProtocol = (type, payload) => {
   return { type, payload };
 };
 
-const updateSnapshot = ({ votingState }) => {
-  return createProtocol(
-    ProtocolType.UpdateSnapshot,
-    {
-      votingState
-    }
-  );
+const updateVotingState = (votingState) => {
+  return createProtocol(ProtocolType.UpdateVotingState, votingState);
 };
 
-export { updateSnapshot };
+const updateFEN = (FEN) => {
+  return createProtocol(ProtocolType.UpdateFEN, FEN);
+}
+
+const updateHistory = (history) => {
+  return createProtocol(ProtocolType.UpdateHistory, history);
+}
+
+export { updateVotingState, updateFEN, updateHistory };

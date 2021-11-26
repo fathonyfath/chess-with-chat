@@ -4,6 +4,7 @@ import usePeer from "../peer/usePeer";
 import ProtocolType from "../protocol/protocol-type";
 import RaceChart from "../component/RaceChart";
 import { stringToColor } from "../util/util";
+import ChessViewer from "../component/ChessViewer";
 
 const Viewer = () => {
   const navigate = useNavigate();
@@ -14,12 +15,21 @@ const Viewer = () => {
     data: []
   });
 
+  const [fen, setFen] = useState(null);
+  const [gameHistory, setGameHistory] = useState({});
+
+
   const dataObserver = useCallback((data) => {
     switch (data.type) {
-      case ProtocolType.UpdateSnapshot:
-        const { votingState } = data.payload;
-        setVotingState(votingState);
+      case ProtocolType.UpdateVotingState:
+        setVotingState(data.payload);
         break
+      case ProtocolType.UpdateFEN:
+        setFen(data.payload);
+        break;
+      case ProtocolType.UpdateHistory:
+        setGameHistory(data.payload);
+        break;
       default:
     };
   }, []);
@@ -59,6 +69,9 @@ const Viewer = () => {
       <p>MyPeerId: {myPeerId}</p>
       <p>ConnectTo: {connectTo}</p>
       {votingState.visible && <RaceChart data={chartData} />}
+      <ChessViewer
+        fen={fen}
+        gameHistory={gameHistory} />
     </>
   );
 };

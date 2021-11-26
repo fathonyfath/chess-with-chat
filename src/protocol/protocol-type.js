@@ -1,5 +1,7 @@
 const ProtocolType = {
-  UpdateSnapshot: "UpdateSnapshot"
+  UpdateVotingState: "UpdateVotingState", 
+  UpdateFEN: "UpdateFEN", 
+  UpdateHistory: "UpdateHistory"
 };
 
 export default ProtocolType;
