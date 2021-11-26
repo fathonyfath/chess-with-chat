@@ -16,14 +16,17 @@ const Viewer = () => {
   });
 
   const [fen, setFen] = useState(null);
-  const [gameHistory, setGameHistory] = useState({});
+  const [gameHistory, setGameHistory] = useState([]);
 
+  const [countdown, setCountdown] = useState(0);
+  const [possibleMove, setPossibleMove] = useState([]);
+  const [gameStatus, setGameStatus] = useState("Null");
 
   const dataObserver = useCallback((data) => {
     switch (data.type) {
       case ProtocolType.UpdateVotingState:
         setVotingState(data.payload);
-        break
+        break;
       case ProtocolType.UpdateFEN:
         setFen(data.payload);
         break;
@@ -31,13 +34,13 @@ const Viewer = () => {
         setGameHistory(data.payload);
         break;
       case ProtocolType.UpdateStatus:
-        console.log("status:", data.payload);
+        setGameStatus(data.payload);
         break;
       case ProtocolType.UpdateCountdown:
-        console.log("countdown:", data.payload);
+        setCountdown(data.payload);
         break;
       case ProtocolType.UpdatePossibleEnemyMoves:
-        console.log("possible moves:", data.payload);
+        setPossibleMove(data.payload);
         break;
       default:
     };
@@ -58,7 +61,7 @@ const Viewer = () => {
 
     return () => {
       close();
-    }
+    };
   }, [connectTo, myPeerId, close, connect]);
 
   const chartData = useMemo(() => {
@@ -72,16 +75,54 @@ const Viewer = () => {
   }, [votingState]);
 
   return (
-    <>
-      <h1>Viewer</h1>
-      <h2>State: {state}</h2>
-      <p>MyPeerId: {myPeerId}</p>
-      <p>ConnectTo: {connectTo}</p>
-      {votingState.visible && <RaceChart data={chartData} />}
-      <ChessViewer
-        fen={fen}
-        gameHistory={gameHistory} />
-    </>
+    <div className="wrapper">
+      <section className="header flex">
+        <div className="game-status card">
+          <h1>{gameStatus}</h1>
+        </div>
+        <div className="game-countdown card">
+          <h2>Countdown: {countdown}</h2>
+        </div>
+      </section>
+      <section className="content flex">
+        <div className="chessboard-container">
+          <ChessViewer fen={fen} gameHistory={gameHistory} />
+          <div className="card peer-info">
+            <h2>Peer status: {state}</h2>
+          </div>
+        </div>
+        <div className="info-container">
+          <div className="chart-container card">
+            <h1>Moves Graph</h1>
+            <RaceChart data={chartData} />
+          </div>
+          <div className="move-container card">
+            <h1>Possible Moves</h1>
+            <div className="flex possible-move">
+              {possibleMove.map((move, i) => {
+                return <p key={i}>{move}</p>;
+              })}
+            </div>
+          </div>
+          <div className="history-container card">
+            <h1>History</h1>
+            <div className="flex history-move">
+              {gameHistory.map((move, i) => {
+                return i % 2 === 0 ? (
+                  <span key={i}>
+                    {i + 1}. <b>{move.to}</b>
+                  </span>
+                ) : (
+                  <span key={i}>
+                    <b>{move.to}</b>
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 };
 

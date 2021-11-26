@@ -1,15 +1,13 @@
-import { count } from "d3-array";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import GoPlayChatState from "../api/goplay-chat-state";
 import useGoPlayChat from "../api/useGoPlayChat";
 import ChessPlayer from "../component/ChessPlayer";
-import useInterval from "../hook/useInterval";
-import PeerState from "../peer/peer-state";
 import usePeer from "../peer/usePeer";
-import { updateCountdown, updateFEN, updateHistory, updatePossibleEnemyMoves, updateVotingState } from "../protocol/protocol";
+import RaceChart from "../component/RaceChart";
+import { updateCountdown, updateFEN, updateHistory, updatePossibleEnemyMoves, updateStatus, updateVotingState } from "../protocol/protocol";
 import createVotingState from "../protocol/voting-state";
 
-const delay = (ms) => new Promise(r => setTimeout(r, ms));
+const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const ViewerTime = 10;
 
@@ -25,7 +23,7 @@ const Streamer = () => {
   const acceptingChat = useRef(false);
 
   const [fen, setFen] = useState(null);
-  const [gameHistory, setGameHistory] = useState({});
+  const [gameHistory, setGameHistory] = useState([]);
 
   const getEnemyMovesRef = useRef();
   const moveEnemyRef = useRef();
@@ -34,7 +32,15 @@ const Streamer = () => {
   const userSetRef = useRef([]);
   const userMoveSelectionRef = useRef({});
 
-  const chatIsConnected = () => chatState === GoPlayChatState.Connected
+  const [votingState, setVotingState] = useState({
+    visible: false,
+    data: []
+  });
+  const [gameStatus, setGameStatus] = useState("Null");
+
+  const [viewerPossibleMove, setViewerPossibleMove] = useState([]);
+
+  const chatIsConnected = () => chatState === GoPlayChatState.Connected;
 
   const countdownOver = () => {
     acceptingChat.current = false;
@@ -48,7 +54,7 @@ const Streamer = () => {
       const { allMoves } = getEnemyMovesRef.current();
       const randomMove = allMoves[Math.floor(Math.random() * allMoves.length)];
       processMove(randomMove);
-    }
+    };
 
     const userSelection = Object.keys(userMoveSelectionRef.current).map((i) => {
       return {
@@ -85,7 +91,9 @@ const Streamer = () => {
       showChart = false;
     }
     const votingState = createVotingState(showChart, dataToSend);
+    setVotingState(votingState);
     const protocol = updateVotingState(votingState);
+    setVotingState(votingState);
     send(protocol);
   }, [userMoveSelectionRef, send]);
 
@@ -121,13 +129,29 @@ const Streamer = () => {
     }
   }, [lastChatMessage, acceptingChat, userSetRef, userMoveSelectionRef, sendVotingProtocol]);
 
+  const chartData = useMemo(() => {
+    return votingState.data.map((item) => {
+      return {
+        name: item.name,
+        color: stringToColor(item.name),
+        value: item.value
+      };
+    });
+  }, [votingState]);
+
   const onCurrentChanged = useCallback((turn) => {
     if (turn === "b" && !gameIsOverRef.current()) {
       const { allMoves } = getEnemyMovesRef.current();
       setCountdown(ViewerTime);
+      setViewerPossibleMove(allMoves);
       send(updatePossibleEnemyMoves(allMoves));
       acceptingChat.current = true;
     }
+  }, [send]);
+
+  const onStatusChanged = useCallback((status) => {
+    setGameStatus(status);
+    send(updateStatus(status));
   }, [send]);
 
   const onGameHistoryChanged = (history) => {
@@ -153,34 +177,95 @@ const Streamer = () => {
   }, [myPeerId]);
 
   return (
-    <>
-      <h1>Streamer</h1>
-      <h2>State: {state}</h2>
-      <p>MyPeerId: {myPeerId}</p>
-      <p>ChatState: {chatState}</p>
-      <p>Countdown: {countdown || "null"}</p>
-      <input type="text" id="event-slug" name="event-slug" ref={eventSlugRef}></input>
-      <button
-        disabled={chatIsConnected()}
-        onClick={() => connect(eventSlugRef.current.value)}>
-        Update Event Slug
-      </button>
-      <br />
-      <input type="text" id="link" name="link" value={viewerLink || ""} readOnly></input>
-      <button
-        disabled={!viewerLink || !chatIsConnected()}
-        onClick={() => navigator.clipboard.writeText(viewerLink)}>
-        Copy link
-      </button>
-      <br />
-      <ChessPlayer
-        getEnemyMovesRef={getEnemyMovesRef}
-        moveEnemyRef={moveEnemyRef}
-        gameIsOverRef={gameIsOverRef}
-        onCurrentChanged={onCurrentChanged}
-        onGameHistoryChanged={onGameHistoryChanged}
-        onFenChanged={onFenChanged} />
-    </>
+    <div className="wrapper">
+      <section className="header flex">
+        <div className="game-status card">
+          <h1>{gameStatus}</h1>
+        </div>
+        <div className="game-countdown card">
+          <h2>Viewer countdown: {countdown}</h2>
+        </div>
+      </section>
+      <section className="content flex">
+        <div className="chessboard-container">
+          <ChessPlayer
+            getEnemyMovesRef={getEnemyMovesRef}
+            moveEnemyRef={moveEnemyRef}
+            gameIsOverRef={gameIsOverRef}
+            onCurrentChanged={onCurrentChanged}
+            onStatusChanged={onStatusChanged}
+            onGameHistoryChanged={onGameHistoryChanged}
+            onFenChanged={onFenChanged}
+          />
+          <div className="card peer-info">
+            <div className="input-group">
+              <input
+                type="text"
+                id="event-slug"
+                name="event-slug"
+                ref={eventSlugRef}
+              ></input>
+              <button
+                disabled={chatIsConnected()}
+                onClick={() => connect(eventSlugRef.current.value)}
+              >
+                Update Event Slug
+              </button>
+            </div>
+            <div className="input-group">
+              <input
+                type="text"
+                id="link"
+                name="link"
+                value={viewerLink || ""}
+                readOnly
+              ></input>
+              <button
+                disabled={!viewerLink || !chatIsConnected()}
+                onClick={() => navigator.clipboard.writeText(viewerLink)}
+              >
+                Copy link
+              </button>
+            </div>
+            <div className="streamer-info">
+              <p>State: {state}</p>
+              <p>MyPeerId: {myPeerId}</p>
+              <p>ChatState: {chatState}</p>
+            </div>
+          </div>
+        </div>
+        <div className="info-container">
+          <div className="chart-container card">
+            <h1>Moves Graph</h1>
+            <RaceChart data={chartData} />
+          </div>
+          <div className="move-container card">
+            <h1>Viewer Possible Moves</h1>
+            <div className="flex possible-move">
+              {viewerPossibleMove.map((move, i) => {
+                return <p key={i}>{move}</p>;
+              })}
+            </div>
+          </div>
+          <div className="history-container card">
+            <h1>History</h1>
+            <div className="flex history-move">
+              {gameHistory.map((move, i) => {
+                return i % 2 === 0 ? (
+                  <span key={i}>
+                    {i + 1}. <b>{move.to}</b>
+                  </span>
+                ) : (
+                  <span key={i}>
+                    <b>{move.to}</b>
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 };
 

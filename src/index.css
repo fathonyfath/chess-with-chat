@@ -12,3 +12,96 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.flex {
+  display: flex;
+}
+
+.header {
+  justify-content: space-evenly;
+}
+
+.header div {
+  width: 50%
+}
+
+.chessboard-container {
+  width: 50%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.info-container {
+  width: 50%;
+}
+
+.card {
+  border: solid 1px #000;
+  padding: 8px 16px;
+  margin: 16px;
+}
+
+.possible-move {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.possible-move p {
+  padding: 0;
+  margin: 0;
+  width: 24%;
+  text-align: center;
+  font-size: 24px;
+}
+
+.history-move {
+  flex-wrap: wrap;
+  gap: 2%;
+  align-items: center;
+}
+
+.history-move p {
+  width: 49%;
+}
+
+.peer-info {
+  width: 90%;
+}
+
+.input-group {
+  width: 100%;
+  display: flex;
+  gap: 1%;
+  margin-top: 10px;
+}
+
+.input-group input {
+  width: 70%;
+  font-size: 16px;
+  padding: 5px 10px;
+  border: solid 1px #000;
+  border-radius: 5px;
+}
+
+.input-group button {
+  width: 25%;
+  font-size: 14px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  font-weight: 600;
+}
+
+.streamer-info {
+  text-align: left;
+}
+
+.streamer-info p {
+  font-weight: 600;
+  font-size: 20px;
+  padding: 0;
+  margin: 15px 0 0 0;
+}
