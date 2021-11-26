@@ -8,12 +8,20 @@ const updateVotingState = (votingState) => {
   return createProtocol(ProtocolType.UpdateVotingState, votingState);
 };
 
-const updateFEN = (FEN) => {
-  return createProtocol(ProtocolType.UpdateFEN, FEN);
+const updateFEN = (fen) => {
+  return createProtocol(ProtocolType.UpdateFEN, fen);
 }
 
 const updateHistory = (history) => {
   return createProtocol(ProtocolType.UpdateHistory, history);
 }
 
-export { updateVotingState, updateFEN, updateHistory };
+const updateCountdown = (countdown) => {
+  return createProtocol(ProtocolType.UpdateCountdown, countdown);
+}
+
+const updatePossibleEnemyMoves = (possibleMoves) => {
+  return createProtocol(ProtocolType.UpdatePossibleEnemyMoves, possibleMoves);
+}
+
+export { updateVotingState, updateFEN, updateHistory, updateCountdown, updatePossibleEnemyMoves };

@@ -8,6 +8,7 @@ const game = new Chess();
 const ChessPlayer = ({
   getEnemyMovesRef,
   moveEnemyRef,
+  gameIsOverRef,
   onCurrentChanged,
   onStatusChanged,
   onFenChanged,
@@ -68,6 +69,10 @@ const ChessPlayer = ({
 
   if (moveEnemyRef) {
     moveEnemyRef.current = moveEnemy;
+  }
+
+  if (gameIsOverRef) {
+    gameIsOverRef.current = game.game_over;
   }
 
   const onPromotionHandler = (p) => {

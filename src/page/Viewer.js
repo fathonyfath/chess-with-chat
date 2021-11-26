@@ -30,6 +30,15 @@ const Viewer = () => {
       case ProtocolType.UpdateHistory:
         setGameHistory(data.payload);
         break;
+      case ProtocolType.UpdateStatus:
+        console.log("status:", data.payload);
+        break;
+      case ProtocolType.UpdateCountdown:
+        console.log("countdown:", data.payload);
+        break;
+      case ProtocolType.UpdatePossibleEnemyMoves:
+        console.log("possible moves:", data.payload);
+        break;
       default:
     };
   }, []);
