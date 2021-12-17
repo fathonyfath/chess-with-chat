@@ -10,7 +10,7 @@ import { stringToColor } from "../util/util";
 
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
-const ViewerTime = 10;
+const ViewerTime = 120;
 
 const Streamer = () => {
   const eventSlugRef = useRef();
@@ -123,7 +123,7 @@ const Streamer = () => {
       if (allMoves.includes(message) && !userSetRef.current.includes(from)) {
         userSetRef.current.push(from);
         const userMoveSelection = userMoveSelectionRef.current;
-        const userMoveSelectionCopy = { ...userMoveSelection, [message]: (userMoveSelection[message] || 1) }
+        const userMoveSelectionCopy = { ...userMoveSelection, [message]: (userMoveSelection[message] || 0) + 1 }
         userMoveSelectionRef.current = userMoveSelectionCopy
         sendVotingProtocol();
       }
